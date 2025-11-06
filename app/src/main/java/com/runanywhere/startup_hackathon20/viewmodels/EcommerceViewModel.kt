@@ -74,6 +74,14 @@ class EcommerceViewModel : ViewModel() {
         initialValue = 0
     )
 
+    // Recently viewed products
+    private val _recentlyViewedProducts = MutableStateFlow<List<Product>>(emptyList())
+    val recentlyViewedProducts: StateFlow<List<Product>> = _recentlyViewedProducts.asStateFlow()
+
+    // Wishlist products
+    private val _wishlistProducts = MutableStateFlow<List<Product>>(emptyList())
+    val wishlistProducts: StateFlow<List<Product>> = _wishlistProducts.asStateFlow()
+
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
     }
@@ -129,7 +137,46 @@ class EcommerceViewModel : ViewModel() {
         _cartItems.value = emptyList()
     }
 
+    fun trackProductView(product: Product) {
+        viewModelScope.launch {
+            val currentList = _recentlyViewedProducts.value.toMutableList()
+            // Remove if already exists to avoid duplicates
+            currentList.removeAll { it.id == product.id }
+            // Add to beginning
+            currentList.add(0, product)
+            // Keep only last 10 viewed products
+            if (currentList.size > 10) {
+                currentList.removeAt(currentList.size - 1)
+            }
+            _recentlyViewedProducts.value = currentList
+        }
+    }
+
     fun getProductById(id: String): Product? {
         return ProductRepository.getProductById(id)
+    }
+
+    fun toggleWishlist(product: Product) {
+        viewModelScope.launch {
+            val currentList = _wishlistProducts.value.toMutableList()
+            if (currentList.any { it.id == product.id }) {
+                currentList.removeAll { it.id == product.id }
+            } else {
+                currentList.add(product)
+            }
+            _wishlistProducts.value = currentList
+        }
+    }
+
+    fun isInWishlist(productId: String): Boolean {
+        return _wishlistProducts.value.any { it.id == productId }
+    }
+
+    fun removeFromWishlist(productId: String) {
+        viewModelScope.launch {
+            val currentList = _wishlistProducts.value.toMutableList()
+            currentList.removeAll { it.id == productId }
+            _wishlistProducts.value = currentList
+        }
     }
 }

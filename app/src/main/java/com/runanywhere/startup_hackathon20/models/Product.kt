@@ -13,7 +13,9 @@ data class Product(
     val rating: Float = 4.5f,
     val reviews: Int = 0,
     val inStock: Boolean = true,
-    val discount: Int = 0 // Percentage
+    val discount: Int = 0, // Percentage
+    val additionalImages: List<String> = emptyList(),
+    val customerReviews: List<CustomerReview> = emptyList()
 ) {
     val discountedPrice: Double
         get() = if (discount > 0) {
@@ -22,3 +24,13 @@ data class Product(
             price
         }
 }
+
+@Immutable
+data class CustomerReview(
+    val id: String,
+    val customerName: String,
+    val rating: Float,
+    val comment: String,
+    val date: String,
+    val verified: Boolean = true
+)
