@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">startup_hackathon2.0</string>
+    <string name="app_name">Techxon</string>
+    <string name="home">Home</string>
+    <string name="categories">Categories</string>
+    <string name="cart">Cart</string>
+    <string name="assistant">AI Assistant</string>
+    <string name="profile">Profile</string>
+    <string name="search_products">Search products…</string>
+    <string name="add_to_cart">Add to Cart</string>
+    <string name="buy_now">Buy Now</string>
+    <string name="checkout">Checkout</string>
+    <string name="total">Total</string>
+    <string name="ask_ai">Ask AI Assistant</string>
 </resources>
