@@ -1,5 +1,7 @@
 package com.runanywhere.startup_hackathon20
 
+import com.runanywhere.startup_hackathon20.R
+
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +10,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -29,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -58,6 +62,453 @@ fun formatIndianCurrency(amount: Double): String {
     return "₹${String.format("%,.0f", amount)}"
 }
 
+// ========== NOTIFICATIONS SCREEN ==========
+data class NotificationItem(
+    val id: String,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val title: String,
+    val body: String,
+    val time: String,
+    val isUnread: Boolean = false
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NotificationsScreen(
+    notifications: List<NotificationItem>,
+    onBack: () -> Unit
+) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Notifications") },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.Default.ArrowBack, "Back")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                )
+            }
+        ) { paddingValues ->
+            if (notifications.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = null,
+                            modifier = Modifier.size(80.dp),
+                            tint = MaterialTheme.colorScheme.outline
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "No notifications yet",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(notifications) { notification ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (notification.isUnread)
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                else
+                                    MaterialTheme.colorScheme.surface
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Icon(
+                                            notification.icon,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            notification.title,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            notification.time,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        notification.body,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+}
+
+// ========== FLASH SALES SCREEN ==========
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FlashSalesScreen(
+    products: List<Product>,
+    onProductClick: (String) -> Unit,
+    onBack: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("⚡ Flash Sales") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFFFF6B35),
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(products) { product ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onProductClick(product.id) },
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Row(modifier = Modifier.padding(12.dp)) {
+                        AsyncImage(
+                            model = product.imageUrl,
+                            contentDescription = product.name,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                product.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 2
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    "₹${String.format("%.0f", product.discountedPrice)}",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFFF6B35)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                if (product.discount > 0) {
+                                    Text(
+                                        "₹${String.format("%.0f", product.price)}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        textDecoration = TextDecoration.LineThrough,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            if (product.discount > 0) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFFFF6B35)
+                                ) {
+                                    Text(
+                                        "${product.discount}% OFF",
+                                        modifier = Modifier.padding(
+                                            horizontal = 8.dp,
+                                            vertical = 4.dp
+                                        ),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ========== ORDER TRACKING SCREEN ==========
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun OrderTrackingScreen(
+    order: Order,
+    onBack: () -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Track Order") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, "Back")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+        ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            "Order ID: ${order.id}",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Status: ${order.status.name}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = when (order.status) {
+                                OrderStatus.DELIVERED -> Color(0xFF4CAF50)
+                                OrderStatus.SHIPPED -> Color(0xFF2196F3)
+                                OrderStatus.CANCELLED -> Color(0xFFF44336)
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(24.dp)) }
+
+            item {
+                Text(
+                    "Order Items",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(12.dp)) }
+
+            items(order.items) { orderItem ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AsyncImage(
+                            model = orderItem.product.imageUrl,
+                            contentDescription = orderItem.product.name,
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                orderItem.product.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 2
+                            )
+                            Text(
+                                "Qty: ${orderItem.quantity}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Text(
+                            "₹${String.format("%.0f", orderItem.price * orderItem.quantity)}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ========== FILTER/SORT DIALOG ==========
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FilterSortDialog(
+    show: Boolean,
+    availableCategories: List<Category>,
+    selectedCategory: String?,
+    sortOptions: List<String>,
+    selectedSort: String,
+    onCategorySelect: (String?) -> Unit,
+    onSortSelect: (String) -> Unit,
+    onApply: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (show) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = {
+                Text(
+                    "Filter & Sort",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Category Filter
+                    Text(
+                        "Category",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        item {
+                            FilterChip(
+                                selected = selectedCategory == null,
+                                onClick = { onCategorySelect(null) },
+                                label = { Text("All") }
+                            )
+                        }
+                        items(availableCategories) { category ->
+                            FilterChip(
+                                selected = selectedCategory == category.id,
+                                onClick = { onCategorySelect(category.id) },
+                                label = { Text(category.name) }
+                            )
+                        }
+                    }
+
+                    Divider()
+
+                    // Sort Options
+                    Text(
+                        "Sort By",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        sortOptions.forEach { option ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onSortSelect(option) }
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = selectedSort == option,
+                                    onClick = { onSortSelect(option) }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(option)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = onApply,
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Apply")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            },
+            shape = RoundedCornerShape(20.dp)
+        )
+    }
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +521,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// ========== AUTHENTICATION SCREEN ==========
+ // ========== AUTHENTICATION SCREEN ==========
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationScreen(authViewModel: AuthViewModel) {
@@ -81,8 +532,16 @@ fun AuthenticationScreen(authViewModel: AuthViewModel) {
     var phone by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
+     val loginError by authViewModel.loginError.collectAsState()
 
-    Column(
+     // Update error message when loginError changes
+     LaunchedEffect(loginError) {
+         loginError?.let {
+             errorMessage = it
+         }
+     }
+
+     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
@@ -112,11 +571,10 @@ fun AuthenticationScreen(authViewModel: AuthViewModel) {
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.fillMaxSize()
             ) {
-                Icon(
-                    Icons.Default.ShoppingCart,
-                    contentDescription = null,
-                    modifier = Modifier.size(50.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                Image(
+                    painter = painterResource(id = R.drawable.techxon_logo),
+                    contentDescription = "Techxon Logo",
+                    modifier = Modifier.size(80.dp)
                 )
             }
         }
@@ -219,18 +677,12 @@ fun AuthenticationScreen(authViewModel: AuthViewModel) {
                     onClick = {
                         errorMessage = ""
                         if (isLogin) {
-                            val success = authViewModel.login(email, password)
-                            if (!success) {
-                                errorMessage = "Invalid email or password"
-                            }
+                            authViewModel.login(email, password)
                         } else {
                             if (name.isBlank() || email.isBlank() || password.isBlank()) {
                                 errorMessage = "Please fill all fields"
                             } else {
-                                val success = authViewModel.signup(name, email, phone, password)
-                                if (!success) {
-                                    errorMessage = "Email already exists"
-                                }
+                                authViewModel.signup(name, email, phone, password)
                             }
                         }
                     },
@@ -1526,7 +1978,7 @@ fun StatusBadge(status: OrderStatus) {
         OrderStatus.PENDING -> Color(0xFFFFA000) to "Pending"
         OrderStatus.CONFIRMED -> Color(0xFF2196F3) to "Confirmed"
         OrderStatus.SHIPPED -> Color(0xFF9C27B0) to "Shipped"
-        OrderStatus.DELIVERED -> Color(0xFF4CAF50) to "Delivered"
+        OrderStatus.DELIVERED -> Color(0xFF00BFA5) to "Delivered"
         OrderStatus.CANCELLED -> Color(0xFFF44336) to "Cancelled"
     }
 
@@ -1868,7 +2320,7 @@ fun WishlistProductCard(
                         Icon(
                             Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color(0xFFFFC107),
+                            tint = Color(0xFFFFD700),
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
@@ -2086,7 +2538,7 @@ fun ProductDetailScreen(
                         Icon(
                             Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color(0xFFFFC107),
+                            tint = Color(0xFFFFD700),
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
@@ -2123,14 +2575,14 @@ fun ProductDetailScreen(
                         )
                         Surface(
                             shape = RoundedCornerShape(8.dp),
-                            color = Color(0xFF4CAF50).copy(alpha = 0.2f)
+                            color = Color(0xFF00BFA5).copy(alpha = 0.2f)
                         ) {
                             Text(
                                 "${product.discount}% OFF",
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF4CAF50)
+                                color = Color(0xFF00BFA5)
                             )
                         }
                     }
@@ -2146,14 +2598,14 @@ fun ProductDetailScreen(
                         Icon(
                             Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = Color(0xFF4CAF50),
+                            tint = Color(0xFF00BFA5),
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             "In Stock",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF4CAF50)
+                            color = Color(0xFF00BFA5)
                         )
                     }
                 } else {
@@ -2320,7 +2772,7 @@ fun CustomerReviewCard(review: CustomerReview) {
                                 Icon(
                                     Icons.Default.CheckCircle,
                                     contentDescription = "Verified",
-                                    tint = Color(0xFF4CAF50),
+                                    tint = Color(0xFF00BFA5),
                                     modifier = Modifier.size(14.dp)
                                 )
                             }
@@ -2339,7 +2791,7 @@ fun CustomerReviewCard(review: CustomerReview) {
                     Icon(
                         Icons.Default.Star,
                         contentDescription = null,
-                        tint = Color(0xFFFFC107),
+                        tint = Color(0xFFFFD700),
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
@@ -2363,19 +2815,62 @@ fun CustomerReviewCard(review: CustomerReview) {
 
 @Composable
 fun EcommerceApp() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val database =
+        remember { com.runanywhere.startup_hackathon20.data.AppDatabase.getDatabase(context) }
+    val authViewModelFactory =
+        remember { com.runanywhere.startup_hackathon20.viewmodels.AuthViewModelFactory(database.userDao()) }
+
     val ecommerceViewModel: EcommerceViewModel = viewModel()
     val aiViewModel: AIShoppingAssistantViewModel = viewModel()
-    val authViewModel: AuthViewModel = viewModel()
+    val authViewModel: AuthViewModel = viewModel(factory = authViewModelFactory)
 
     var selectedTab by remember { mutableStateOf(0) }
     val cartItemCount by ecommerceViewModel.cartItemCount.collectAsState()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
     var showWishlist by remember { mutableStateOf(false) }
     var selectedProductId by remember { mutableStateOf<String?>(null) }
+    var showNotifications by remember { mutableStateOf(false) }
+    var showFlashSales by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var selectedOrderForTracking by remember { mutableStateOf<Order?>(null) }
 
     // Show login screen if not logged in
     if (!isLoggedIn) {
         AuthenticationScreen(authViewModel)
+    } else if (showNotifications) {
+        val notifications = listOf(
+            NotificationItem(
+                id = "1",
+                icon = Icons.Default.Info,
+                title = "Welcome to Techxon!",
+                body = "Enjoy shopping.",
+                time = "Now",
+                isUnread = true
+            ),
+            NotificationItem(
+                id = "2",
+                icon = Icons.Default.Star,
+                title = "Flash Deal!",
+                body = "Limited time discount on select products.",
+                time = "5m ago"
+            ),
+            // add more demo notifications as needed
+        )
+        NotificationsScreen(
+            notifications = notifications,
+            onBack = { showNotifications = false }
+        )
+    } else if (showFlashSales) {
+        val flashProducts by ecommerceViewModel.featuredProducts.collectAsState()
+        FlashSalesScreen(
+            products = flashProducts,
+            onProductClick = { productId ->
+                selectedProductId = productId
+                showFlashSales = false
+            },
+            onBack = { showFlashSales = false }
+        )
     } else if (showWishlist) {
         WishlistScreen(
             viewModel = ecommerceViewModel,
@@ -2392,6 +2887,11 @@ fun EcommerceApp() {
             onBack = {
                 selectedProductId = null
             }
+        )
+    } else if (selectedOrderForTracking != null) {
+        OrderTrackingScreen(
+            order = selectedOrderForTracking!!,
+            onBack = { selectedOrderForTracking = null }
         )
     } else {
         Scaffold(
@@ -2506,13 +3006,34 @@ fun EcommerceApp() {
             }
         ) { paddingValues ->
             Box(modifier = Modifier.padding(paddingValues)) {
+                // Show Filter/Sort dialog if needed
+                val selectedCategoryValue by ecommerceViewModel.selectedCategory.collectAsState()
+                FilterSortDialog(
+                    show = showFilterDialog,
+                    availableCategories = getCategories(),
+                    selectedCategory = selectedCategoryValue,
+                    sortOptions = listOf(
+                        "Relevance",
+                        "Price: Low to High",
+                        "Price: High to Low",
+                        "Rating"
+                    ),
+                    selectedSort = "Relevance",
+                    onCategorySelect = { categoryId -> ecommerceViewModel.selectCategory(categoryId) },
+                    onSortSelect = { /* handle sort selection, update VM as needed */ },
+                    onApply = { showFilterDialog = false },
+                    onDismiss = { showFilterDialog = false }
+                )
                 when (selectedTab) {
                     0 -> HomeScreen(
                         viewModel = ecommerceViewModel,
                         onShowWishlist = { showWishlist = true }
                     )
                     1 -> CategoriesScreen(ecommerceViewModel)
-                    2 -> CartScreen(ecommerceViewModel)
+                    2 -> CartScreen(
+                        viewModel = ecommerceViewModel,
+                        onNavigateHome = { selectedTab = 0 }
+                    )
                     3 -> AIAssistantScreen(aiViewModel, ecommerceViewModel)
                     4 -> ProfileScreen(authViewModel, ecommerceViewModel)
                 }
@@ -2531,397 +3052,446 @@ fun HomeScreen(
     val featuredProducts by viewModel.featuredProducts.collectAsState()
     val topRatedProducts by viewModel.topRatedProducts.collectAsState()
     val displayedProducts by viewModel.displayedProducts.collectAsState()
+    var showSearchBar by remember { mutableStateOf(false) }
+    var showCategoryMenu by remember { mutableStateOf(false) }
+    var selectedCategoryForView by remember { mutableStateOf<String?>(null) }
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color(0xFFF5F5F5))
     ) {
-        // Beautiful Header with Gradient
+        // Top Header with Quick Service Buttons (Flipkart-style)
         item {
             Surface(
-                color = MaterialTheme.colorScheme.primary,
+                color = Color(0xFF2874F0),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.primaryContainer
-                                )
-                            )
-                        )
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp)
+                    // Top Bar with Logo and Icons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.techxon_logo),
+                                contentDescription = "Logo",
+                                modifier = Modifier.size(36.dp)
+                            )
                             Column {
                                 Text(
                                     "Techxon",
-                                    style = MaterialTheme.typography.headlineLarge,
+                                    style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.onPrimary
+                                    color = Color.White
                                 )
                                 Text(
-                                    "Discover Amazing Products",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                                    "Shop Smart, Live Better",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White.copy(alpha = 0.8f)
                                 )
-                            }
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                IconButton(
-                                    onClick = onShowWishlist,
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
-                                            CircleShape
-                                        )
-                                ) {
-                                    Icon(
-                                        Icons.Default.FavoriteBorder,
-                                        contentDescription = "Wishlist",
-                                        tint = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                }
-                                IconButton(
-                                    onClick = { },
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .background(
-                                            MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
-                                            CircleShape
-                                        )
-                                ) {
-                                    Icon(
-                                        Icons.Default.Notifications,
-                                        contentDescription = "Notifications",
-                                        tint = MaterialTheme.colorScheme.onPrimary
-                                    )
-                                }
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        // Enhanced Search Bar
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { viewModel.updateSearchQuery(it) },
-                            placeholder = {
-                                Text(
-                                    "Search for products...",
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            IconButton(
+                                onClick = onShowWishlist,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color.White.copy(alpha = 0.2f), CircleShape)
+                            ) {
+                                Icon(
+                                    Icons.Default.Favorite,
+                                    contentDescription = "Wishlist",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
                                 )
-                            },
-                            leadingIcon = {
-                                Icon(Icons.Default.Search, contentDescription = null)
-                            },
-                            trailingIcon = {
-                                if (searchQuery.isNotEmpty()) {
-                                    IconButton(onClick = { viewModel.updateSearchQuery("") }) {
-                                        Icon(Icons.Default.Close, contentDescription = "Clear")
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .shadow(8.dp, RoundedCornerShape(28.dp)),
-                            shape = RoundedCornerShape(28.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                focusedBorderColor = Color.Transparent,
-                                unfocusedBorderColor = Color.Transparent
-                            ),
-                            singleLine = true
-                        )
+                            }
+                        }
                     }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Search Bar
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { viewModel.updateSearchQuery(it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        placeholder = { 
+                            Text(
+                                "Search for products, brands and more",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
+                            ) 
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = Color.Gray
+                            )
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { viewModel.updateSearchQuery("") }) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Clear",
+                                        tint = Color.Gray
+                                    )
+                                }
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            disabledContainerColor = Color.White,
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        singleLine = true
+                    )
                 }
             }
         }
 
-        // Promotional Banner Carousel
+        // Quick Service Buttons (Flipkart, Minutes, Travel, Grocery style)
         item {
-            Spacer(modifier = Modifier.height(16.dp))
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    QuickServiceCard(
+                        title = "Flash Sale",
+                        icon = Icons.Default.Star,
+                        backgroundColor = Color(0xFFFFF59D),
+                        onClick = { /* Navigate to flash sales */ }
+                    )
+                }
+                item {
+                    QuickServiceCard(
+                        title = "Categories",
+                        icon = Icons.Default.Menu,
+                        backgroundColor = Color(0xFFE1BEE7),
+                        onClick = { showCategoryMenu = true }
+                    )
+                }
+                item {
+                    QuickServiceCard(
+                        title = "Deals",
+                        icon = Icons.Default.ShoppingCart,
+                        backgroundColor = Color(0xFFB2DFDB),
+                        onClick = { /* Navigate to deals */ }
+                    )
+                }
+                item {
+                    QuickServiceCard(
+                        title = "New",
+                        icon = Icons.Default.Add,
+                        backgroundColor = Color(0xFFFFCCBC),
+                        onClick = { /* Navigate to new arrivals */ }
+                    )
+                }
+            }
+        }
+
+        // Location Bar (like Flipkart)
+        item {
+            Surface(
+                color = Color.White,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clickable { /* Handle location change */ },
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Home,
+                        contentDescription = "Location",
+                        tint = Color(0xFF2874F0),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        "HOME",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2874F0)
+                    )
+                    Text(
+                        "Deliver to your location",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = "Change",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+
+        // Horizontal Category Scroll (Baby, Auto, Sports, Furniture, etc.)
+        item {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                val mainCategories = getMainCategories().take(8)
+                items(mainCategories) { category ->
+                    CategoryIconCard(
+                        category = category,
+                        onClick = { 
+                            viewModel.selectCategory(category.id)
+                            selectedCategoryForView = category.id
+                        }
+                    )
+                }
+            }
+        }
+
+        // Banner/Promotional Carousel
+        item {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(3) { index ->
-                    PromotionalBanner(index)
-                }
-            }
-        }
-
-        // Category Quick Access
-        item {
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                "Shop by Category",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(
-                    listOf(
-                        "Electronics" to Icons.Default.Phone,
-                        "Fashion" to Icons.Default.ShoppingCart,
-                        "Home" to Icons.Default.Home,
-                        "Sports" to Icons.Default.Star,
-                        "Books" to Icons.Default.Menu
+                    ModernPromoBanner(
+                        index = index,
+                        onClick = { /* Navigate to promo details */ }
                     )
-                ) { (name, icon) ->
-                    CategoryChip(name, icon)
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Flash Deals Section
-        if (featuredProducts.isNotEmpty()) {
+        // "Still looking for these?" Section (like Flipkart)
+        if (displayedProducts.isNotEmpty()) {
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-                Card(
+                Surface(
+                    color = Color(0xFFE3F2FD),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFFFF3E0)
-                    ),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(12.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        Text(
+                            "Still looking for these?",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A237E)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            items(displayedProducts.take(5)) { product ->
+                                StillLookingProductCard(
+                                    product = product,
+                                    onClick = { viewModel.trackProductView(product) }
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+
+        // Product Showcase Cards with Offers
+        if (featuredProducts.isNotEmpty()) {
+            items(featuredProducts.take(3).chunked(1)) { products ->
+                products.forEach { product ->
+                    ShowcaseProductCard(
+                        product = product,
+                        viewModel = viewModel
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+        }
+
+        // "Lowest prices: Only on LIVE" Section
+        item {
+            Surface(
+                color = Color(0xFFE1BEE7),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .clickable { /* Navigate to live sales */ },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Surface(
+                            color = Color(0xFFBA68C8),
+                            shape = CircleShape,
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
                             ) {
                                 Icon(
                                     Icons.Default.Star,
                                     contentDescription = null,
-                                    tint = Color(0xFFFF6B00),
+                                    tint = Color.White,
                                     modifier = Modifier.size(28.dp)
                                 )
-                                Column {
-                                    Text(
-                                        "⚡ Flash Deals",
-                                        style = MaterialTheme.typography.titleLarge,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = Color(0xFFFF6B00)
-                                    )
-                                    Text(
-                                        "Limited time offers",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFFFF6B00).copy(alpha = 0.7f)
-                                    )
-                                }
-                            }
-                            Surface(
-                                shape = RoundedCornerShape(20.dp),
-                                color = Color(0xFFFF6B00).copy(alpha = 0.2f)
-                            ) {
-                                Text(
-                                    "Ends Soon",
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFFF6B00)
-                                )
                             }
                         }
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(featuredProducts.take(5)) { product ->
-                        FeaturedProductCard(product, viewModel)
-                    }
-                }
-            }
-        }
-
-        // Featured Products Section
-        if (featuredProducts.isNotEmpty()) {
-            item {
-                Column(
-                    modifier = Modifier.padding(
-                        top = 24.dp,
-                        start = 16.dp,
-                        end = 16.dp,
-                        bottom = 12.dp
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
                         Column {
                             Text(
-                                "🔥 Trending Now",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onBackground
+                                "Lowest prices: Only on LIVE",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF4A148C)
                             )
                             Text(
-                                "Most popular products",
+                                "Exclusive deals starting now",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                            )
-                        }
-                        TextButton(onClick = { }) {
-                            Text(
-                                "See All",
-                                fontWeight = FontWeight.Bold
-                            )
-                            Icon(
-                                Icons.Default.ArrowForward,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                color = Color(0xFF6A1B9A)
                             )
                         }
                     }
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = "View",
+                        tint = Color(0xFF4A148C),
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
-
-            item {
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(featuredProducts) { product ->
-                        FeaturedProductCard(product, viewModel)
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Top Rated Section
+        // "Must-have for smart shoppers" Section
         if (topRatedProducts.isNotEmpty()) {
             item {
                 Column(
-                    modifier = Modifier.padding(
-                        top = 24.dp,
-                        start = 16.dp,
-                        end = 16.dp,
-                        bottom = 12.dp
-                    )
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                "⭐ Top Rated",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Text(
-                                "Highly rated by customers",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                            )
-                        }
-                        TextButton(onClick = { }) {
-                            Text(
-                                "See All",
-                                fontWeight = FontWeight.Bold
-                            )
-                            Icon(
-                                Icons.Default.ArrowForward,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
+                    Text(
+                        "Must-have for smart shoppers",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF212121)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                 }
             }
-
+            
             item {
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(topRatedProducts) { product ->
-                        FeaturedProductCard(product, viewModel)
+                        MustHaveProductCard(
+                            product = product,
+                            viewModel = viewModel
+                        )
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
 
-        // All Products Section
+        // "Top deals on fashion!" Section
+        if (displayedProducts.filter { it.category == "fashion" }.isNotEmpty()) {
+            item {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Text(
+                        "Top deals on fashion!",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF212121)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+            
+            item {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    val fashionProducts = displayedProducts.filter { it.category == "fashion" }.take(6)
+                    items(fashionProducts) { product ->
+                        FashionDealCard(
+                            product = product,
+                            viewModel = viewModel
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+
+        // All Products Grid
         item {
             Column(
-                modifier = Modifier.padding(top = 24.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
+                modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(
-                            "All Products",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        if (searchQuery.isNotEmpty()) {
-                            Text(
-                                "${displayedProducts.size} results found",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                            )
-                        } else {
-                            Text(
-                                "Browse our collection",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                    // Filter button
-                    FilledTonalIconButton(
-                        onClick = { },
-                        modifier = Modifier.size(40.dp)
-                    ) {
+                    Text(
+                        "Explore All Products",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF212121)
+                    )
+                    TextButton(onClick = { /* Show all products */ }) {
+                        Text("View All")
                         Icon(
-                            Icons.Default.Settings,
-                            contentDescription = "Filter",
-                            modifier = Modifier.size(20.dp)
+                            Icons.Default.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
 
@@ -2929,12 +3499,12 @@ fun HomeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 rowProducts.forEach { product ->
                     Box(modifier = Modifier.weight(1f)) {
-                        ProductCard(product, viewModel)
+                        CompactProductCard(product, viewModel)
                     }
                 }
                 if (rowProducts.size == 1) {
@@ -2945,7 +3515,667 @@ fun HomeScreen(
 
         // Bottom spacing
         item {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+// Quick Service Card (Flipkart, Minutes, Travel, Grocery style)
+@Composable
+fun QuickServiceCard(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    backgroundColor: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .width(100.dp)
+            .height(80.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                icon,
+                contentDescription = title,
+                modifier = Modifier.size(32.dp),
+                tint = Color(0xFF212121)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                title,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF212121),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+// Category Icon Card (Baby, Auto, Sports, etc.)
+@Composable
+fun CategoryIconCard(
+    category: Category,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .width(70.dp)
+            .clickable(onClick = onClick)
+    ) {
+        Surface(
+            color = category.color.copy(alpha = 0.2f),
+            shape = CircleShape,
+            modifier = Modifier.size(64.dp)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Icon(
+                    category.icon,
+                    contentDescription = category.name,
+                    tint = category.color,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            category.name.split(" ").first(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF212121),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+// Modern Promo Banner
+@Composable
+fun ModernPromoBanner(index: Int, onClick: () -> Unit) {
+    val gradients = listOf(
+        listOf(Color(0xFF667EEA), Color(0xFF764BA2)),
+        listOf(Color(0xFFF093FB), Color(0xFFF5576C)),
+        listOf(Color(0xFF4FACFE), Color(0xFF00F2FE))
+    )
+    val gradient = gradients[index % gradients.size]
+
+    Card(
+        modifier = Modifier
+            .width(300.dp)
+            .height(160.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        onClick = onClick
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = gradient
+                    )
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        when (index) {
+                            0 -> "MEGA SALE"
+                            1 -> "NEW COLLECTION"
+                            else -> "FLASH DEALS"
+                        },
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.9f)
+                    )
+                    Text(
+                        when (index) {
+                            0 -> "Up to 70% OFF"
+                            1 -> "Fresh Arrivals"
+                            else -> "Limited Time Only"
+                        },
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
+                    )
+                }
+                Surface(
+                    color = Color.White,
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Text(
+                        "Shop Now",
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = gradient.first()
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Still Looking Product Card
+@Composable
+fun StillLookingProductCard(
+    product: Product,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .width(140.dp)
+            .height(200.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp),
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+            ) {
+                AsyncImage(
+                    model = product.imageUrl,
+                    contentDescription = product.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                if (product.discount > 0) {
+                    Surface(
+                        color = Color(0xFFFF6B00),
+                        shape = RoundedCornerShape(bottomEnd = 8.dp),
+                        modifier = Modifier.align(Alignment.TopStart)
+                    ) {
+                        Text(
+                            "${product.discount}% OFF",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+            Column(
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Text(
+                    product.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = Color(0xFF212121)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "₹${String.format("%.0f", product.discountedPrice)}",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2874F0)
+                )
+            }
+        }
+    }
+}
+
+// Showcase Product Card (Large promotional card)
+@Composable
+fun ShowcaseProductCard(
+    product: Product,
+    viewModel: EcommerceViewModel
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(180.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(4.dp),
+        onClick = { viewModel.trackProductView(product) }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .weight(0.4f)
+                    .fillMaxHeight()
+            ) {
+                AsyncImage(
+                    model = product.imageUrl,
+                    contentDescription = product.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            
+            Column(
+                modifier = Modifier
+                    .weight(0.6f)
+                    .fillMaxHeight()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        product.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        color = Color(0xFF212121)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Surface(
+                            color = Color(0xFF388E3C),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Text(
+                                    "${product.rating}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Icon(
+                                    Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(10.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            "(${product.reviews})",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray
+                        )
+                    }
+                }
+                
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (product.discount > 0) {
+                            Text(
+                                "₹${String.format("%.0f", product.price)}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textDecoration = TextDecoration.LineThrough,
+                                color = Color.Gray
+                            )
+                            Surface(
+                                color = Color(0xFFFFEBEE),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    "${product.discount}% off",
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFD32F2F)
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        "₹${String.format("%.0f", product.discountedPrice)}",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF212121)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { viewModel.addToCart(product) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFF9800)
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(vertical = 8.dp)
+                        ) {
+                            Text(
+                                "ADD TO CART",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Must Have Product Card
+@Composable
+fun MustHaveProductCard(
+    product: Product,
+    viewModel: EcommerceViewModel
+) {
+    Card(
+        modifier = Modifier
+            .width(180.dp)
+            .height(280.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(3.dp),
+        onClick = { viewModel.trackProductView(product) }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+            ) {
+                AsyncImage(
+                    model = product.imageUrl,
+                    contentDescription = product.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    product.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = Color(0xFF212121)
+                )
+                
+                Column {
+                    if (product.discount > 0) {
+                        Text(
+                            "₹${String.format("%.0f", product.price)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            textDecoration = TextDecoration.LineThrough,
+                            color = Color.Gray
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "₹${String.format("%.0f", product.discountedPrice)}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF212121)
+                        )
+                        if (product.discount > 0) {
+                            Text(
+                                "${product.discount}% off",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF388E3C)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Fashion Deal Card
+@Composable
+fun FashionDealCard(
+    product: Product,
+    viewModel: EcommerceViewModel
+) {
+    Card(
+        modifier = Modifier
+            .width(160.dp)
+            .height(240.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp),
+        onClick = { viewModel.trackProductView(product) }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+            ) {
+                AsyncImage(
+                    model = product.imageUrl,
+                    contentDescription = product.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                if (product.discount > 0) {
+                    Surface(
+                        color = Color(0xFFD32F2F),
+                        shape = RoundedCornerShape(bottomEnd = 12.dp),
+                        modifier = Modifier.align(Alignment.TopStart)
+                    ) {
+                        Text(
+                            "${product.discount}%",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+            
+            Column(
+                modifier = Modifier.padding(10.dp)
+            ) {
+                Text(
+                    product.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = Color(0xFF212121)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column {
+                        if (product.discount > 0) {
+                            Text(
+                                "₹${String.format("%.0f", product.price)}",
+                                style = MaterialTheme.typography.labelSmall,
+                                textDecoration = TextDecoration.LineThrough,
+                                color = Color.Gray
+                            )
+                        }
+                        Text(
+                            "₹${String.format("%.0f", product.discountedPrice)}",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF212121)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Compact Product Card for grid
+@Composable
+fun CompactProductCard(
+    product: Product,
+    viewModel: EcommerceViewModel
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(260.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp),
+        onClick = { viewModel.trackProductView(product) }
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+            ) {
+                AsyncImage(
+                    model = product.imageUrl,
+                    contentDescription = product.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                if (product.discount > 0) {
+                    Surface(
+                        color = Color(0xFFFF6B00),
+                        shape = RoundedCornerShape(bottomEnd = 8.dp),
+                        modifier = Modifier.align(Alignment.TopStart)
+                    ) {
+                        Text(
+                            "${product.discount}%",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+                
+                // Wishlist icon
+                IconButton(
+                    onClick = { viewModel.toggleWishlist(product) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .size(32.dp)
+                        .background(Color.White.copy(alpha = 0.8f), CircleShape)
+                ) {
+                    Icon(
+                        if (viewModel.isInWishlist(product.id)) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Wishlist",
+                        tint = if (viewModel.isInWishlist(product.id)) Color.Red else Color.Gray,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+            
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    product.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    color = Color(0xFF212121)
+                )
+                
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Surface(
+                            color = Color(0xFF388E3C),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "${product.rating}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Icon(
+                                    Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(10.dp)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    if (product.discount > 0) {
+                        Text(
+                            "₹${String.format("%.0f", product.price)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            textDecoration = TextDecoration.LineThrough,
+                            color = Color.Gray
+                        )
+                    }
+                    Text(
+                        "₹${String.format("%.0f", product.discountedPrice)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF212121)
+                    )
+                }
+            }
         }
     }
 }
@@ -2953,9 +4183,9 @@ fun HomeScreen(
 @Composable
 fun PromotionalBanner(index: Int) {
     val colors = listOf(
-        Color(0xFF6C63FF) to Color(0xFF4CAF50),
-        Color(0xFFFF6B6B) to Color(0xFFFFE66D),
-        Color(0xFF4ECDC4) to Color(0xFF44A08D)
+        Color(0xFF7C4DFF) to Color(0xFF00BFA5),
+        Color(0xFFFF4081) to Color(0xFFFFC400),
+        Color(0xFF00BFA5) to Color(0xFF00897B)
     )
     val (startColor, endColor) = colors[index % colors.size]
 
@@ -3098,7 +4328,7 @@ fun ModernProductCard(product: Product, viewModel: EcommerceViewModel) {
                 )
                 if (product.discount > 0) {
                     Surface(
-                        color = Color(0xFFFF3D00),
+                        color = Color(0xFFFF6F00),
                         shape = RoundedCornerShape(bottomEnd = 8.dp),
                         modifier = Modifier.align(Alignment.TopStart)
                     ) {
@@ -3144,7 +4374,7 @@ fun ModernProductCard(product: Product, viewModel: EcommerceViewModel) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
-                        color = Color(0xFF388E3C),
+                        color = Color(0xFF00BFA5),
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Row(
@@ -3178,7 +4408,7 @@ fun ModernProductCard(product: Product, viewModel: EcommerceViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2874F0)
+                        containerColor = Color(0xFF6A1B9A)
                     ),
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
@@ -3211,7 +4441,7 @@ fun GridProductCard(product: Product, viewModel: EcommerceViewModel) {
                 )
                 if (product.discount > 0) {
                     Surface(
-                        color = Color(0xFFFF3D00),
+                        color = Color(0xFFFF6F00),
                         shape = RoundedCornerShape(bottomEnd = 8.dp)
                     ) {
                         Text(
@@ -3243,7 +4473,7 @@ fun GridProductCard(product: Product, viewModel: EcommerceViewModel) {
                     modifier = Modifier.padding(top = 4.dp)
                 ) {
                     Surface(
-                        color = Color(0xFF388E3C),
+                        color = Color(0xFF00BFA5),
                         shape = RoundedCornerShape(3.dp)
                     ) {
                         Row(
@@ -3384,7 +4614,7 @@ fun CompactProductCard(product: Product, viewModel: EcommerceViewModel) {
                         Text(
                             "${product.discount}% off",
                             style = MaterialTheme.typography.labelSmall,
-                            color = Color(0xFF388E3C),
+                            color = Color(0xFF00BFA5),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -3394,7 +4624,7 @@ fun CompactProductCard(product: Product, viewModel: EcommerceViewModel) {
                     Icon(
                         Icons.Default.Star,
                         contentDescription = null,
-                        tint = Color(0xFFFFB300),
+                        tint = Color(0xFFFFC400),
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
@@ -3525,7 +4755,7 @@ fun FeaturedProductCard(product: Product, viewModel: EcommerceViewModel) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color(0xFFFFC107),
+                            tint = Color(0xFFFFD700),
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
@@ -3549,14 +4779,14 @@ fun FeaturedProductCard(product: Product, viewModel: EcommerceViewModel) {
                     Column {
                         if (product.discount > 0) {
                             Text(
-                                text = "$${product.price}",
+                                text = "₹${product.price}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 textDecoration = TextDecoration.LineThrough,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
                         }
                         Text(
-                            text = "$${String.format("%.2f", product.discountedPrice)}",
+                            text = "₹${String.format("%.2f", product.discountedPrice)}",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
@@ -3663,7 +4893,7 @@ fun ProductCard(
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color(0xFFFFC107),
+                            tint = Color(0xFFFFD700),
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
@@ -3681,14 +4911,14 @@ fun ProductCard(
                     Column {
                         if (product.discount > 0) {
                             Text(
-                                text = "$${product.price}",
+                                text = "₹${product.price}",
                                 style = MaterialTheme.typography.bodySmall,
                                 textDecoration = TextDecoration.LineThrough,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
                         }
                         Text(
-                            text = "$${String.format("%.2f", product.discountedPrice)}",
+                            text = "₹${String.format("%.2f", product.discountedPrice)}",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -4008,7 +5238,7 @@ fun CircularStoreItem() {
     ) {
         Surface(
             shape = CircleShape,
-            color = Color(0xFFE3F2FD),
+            color = Color(0xFFE1BEE7),
             modifier = Modifier.size(60.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -4037,7 +5267,7 @@ fun CircularFeatureItem() {
     ) {
         Surface(
             shape = CircleShape,
-            color = Color(0xFFFFF3E0),
+            color = Color(0xFFFFE0B2),
             modifier = Modifier.size(60.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
@@ -4045,7 +5275,7 @@ fun CircularFeatureItem() {
                     Icons.Default.Star,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
-                    tint = Color(0xFFFF9800)
+                    tint = Color(0xFFFF6F00)
                 )
             }
         }
@@ -4135,7 +5365,7 @@ fun ProductListItem(product: Product, viewModel: EcommerceViewModel) {
                         Icon(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Rating",
-                            tint = Color(0xFFFFC107),
+                            tint = Color(0xFFFFD700),
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
@@ -4159,14 +5389,14 @@ fun ProductListItem(product: Product, viewModel: EcommerceViewModel) {
                     Column {
                         if (product.discount > 0) {
                             Text(
-                                text = "$${product.price}",
+                                text = "₹${product.price}",
                                 style = MaterialTheme.typography.bodySmall,
                                 textDecoration = TextDecoration.LineThrough,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
                         }
                         Text(
-                            text = "$${String.format("%.2f", product.discountedPrice)}",
+                            text = "₹${String.format("%.2f", product.discountedPrice)}",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -4258,7 +5488,7 @@ fun FinanceOptionItem(title: String, subtitle: String) {
 }
 
 @Composable
-fun CartScreen(viewModel: EcommerceViewModel) {
+fun CartScreen(viewModel: EcommerceViewModel, onNavigateHome: () -> Unit = {}) {
     val cartItems by viewModel.cartItems.collectAsState()
     val cartTotal by viewModel.cartTotal.collectAsState()
     val authViewModel: AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
@@ -4360,7 +5590,7 @@ fun CartScreen(viewModel: EcommerceViewModel) {
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Button(
-                        onClick = { /* TODO: Navigate to home */ },
+                        onClick = { onNavigateHome() },
                         modifier = Modifier.fillMaxWidth(0.7f),
                         contentPadding = PaddingValues(vertical = 16.dp),
                         shape = RoundedCornerShape(12.dp)
@@ -4424,7 +5654,7 @@ fun CartScreen(viewModel: EcommerceViewModel) {
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
                             Text(
-                                "${String.format("%.2f", cartTotal)}",
+                                "₹${String.format("%.2f", cartTotal)}",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -4466,7 +5696,7 @@ fun CartScreen(viewModel: EcommerceViewModel) {
                                 fontWeight = FontWeight.ExtraBold
                             )
                             Text(
-                                "${String.format("%.2f", cartTotal)}",
+                                "₹${String.format("%.2f", cartTotal)}",
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = MaterialTheme.colorScheme.primary
@@ -4543,6 +5773,7 @@ fun CheckoutScreen(
     var showPaymentProcessing by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showAddressDialog by remember { mutableStateOf(false) }
+    var showAddEditAddressDialog by remember { mutableStateOf(false) } // NEW STATE VAR
     val selectedAddress by authViewModel.selectedAddress.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
 
@@ -4593,9 +5824,20 @@ fun CheckoutScreen(
             },
             onAddNew = {
                 showAddressDialog = false
-                // This would need to trigger add address dialog in profile
+                showAddEditAddressDialog = true // Open add/edit dialog from checkout
             },
             onDismiss = { showAddressDialog = false }
+        )
+    }
+    if (showAddEditAddressDialog) {
+        AddEditAddressDialog(
+            address = null,
+            onDismiss = { showAddEditAddressDialog = false },
+            onSave = { address ->
+                authViewModel.addAddress(address)
+                authViewModel.selectAddressForOrder(address)
+                showAddEditAddressDialog = false
+            }
         )
     }
 
@@ -4689,7 +5931,7 @@ fun CheckoutScreen(
                                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                             )
                             Text(
-                                "${String.format("%.2f", cartTotal)}",
+                                "₹${String.format("%.2f", cartTotal)}",
                                 style = MaterialTheme.typography.headlineLarge,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -5205,7 +6447,7 @@ fun CheckoutScreen(
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                "Pay ${String.format("%.2f", cartTotal)}",
+                                "Pay ₹${String.format("%.2f", cartTotal)}",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -5314,7 +6556,7 @@ fun PaymentSuccessDialog(
         icon = {
             Surface(
                 shape = CircleShape,
-                color = Color(0xFF4CAF50).copy(alpha = 0.2f),
+                color = Color(0xFF00BFA5).copy(alpha = 0.2f),
                 modifier = Modifier.size(80.dp)
             ) {
                 Box(
@@ -5324,7 +6566,7 @@ fun PaymentSuccessDialog(
                     Icon(
                         Icons.Default.CheckCircle,
                         contentDescription = null,
-                        tint = Color(0xFF4CAF50),
+                        tint = Color(0xFF00BFA5),
                         modifier = Modifier.size(48.dp)
                     )
                 }

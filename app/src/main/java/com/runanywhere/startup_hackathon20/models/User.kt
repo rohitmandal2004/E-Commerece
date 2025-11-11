@@ -1,12 +1,31 @@
 package com.runanywhere.startup_hackathon20.models
 
+import androidx.compose.runtime.Immutable
+
 data class User(
     val id: String,
     val name: String,
     val email: String,
     val phone: String = "",
-    val profileImage: String = "",
-    val addresses: MutableList<Address> = mutableListOf()
+    val addresses: MutableList<Address> = mutableListOf(),
+    // NEW FLIPKART FEATURES
+    val plusMembership: PlusMembership? = null,
+    val superCoins: SuperCoin = SuperCoin(balance = 0, expiringCoins = 0, expiryDate = null),
+    val wallet: Wallet = Wallet(balance = 0.0),
+    val giftCards: List<GiftCard> = emptyList(),
+    val referralProgram: ReferralProgram? = null,
+    val savedPaymentMethods: List<PaymentOption> = emptyList(),
+    val wishlist: List<String> = emptyList(), // product IDs
+    val searchHistory: List<SearchHistory> = emptyList(),
+    val budgetTracker: BudgetTracker? = null,
+    val profileImage: String? = null,
+    val dateOfBirth: String? = null,
+    val gender: String? = null,
+    val alternatePhone: String? = null,
+    val emailVerified: Boolean = false,
+    val phoneVerified: Boolean = false,
+    val accountCreatedDate: String = "",
+    val lastLoginDate: String = ""
 )
 
 data class Address(

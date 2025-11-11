@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Outer Circle -->
+    <path
+        android:pathData="M100,100 m-85,0 a85,85 0 1,0 170,0 a85,85 0 1,0 -170,0"
+        android:strokeColor="#1E3A8A"
+        android:strokeWidth="4"
+        android:fillColor="#00000000" />
+
+    <!-- Inner Circle -->
+    <path
+        android:pathData="M100,100 m-70,0 a70,70 0 1,0 140,0 a70,70 0 1,0 -140,0"
+        android:strokeColor="#0EA5E9"
+        android:strokeWidth="3"
+        android:fillColor="#00000000" />
+
+    <!-- Hexagon Pattern Background -->
+    <path
+        android:pathData="M60,70 L65,67 L70,70 L70,76 L65,79 L60,76 Z M75,70 L80,67 L85,70 L85,76 L80,79 L75,76 Z M90,70 L95,67 L100,70 L100,76 L95,79 L90,76 Z M105,70 L110,67 L115,70 L115,76 L110,79 L105,76 Z M120,70 L125,67 L130,70 L130,76 L125,79 L120,76 Z M60,85 L65,82 L70,85 L70,91 L65,94 L60,91 Z M75,85 L80,82 L85,85 L85,91 L80,94 L75,91 Z M90,85 L95,82 L100,85 L100,91 L95,94 L90,91 Z M105,85 L110,82 L115,85 L115,91 L110,94 L105,91 Z M120,85 L125,82 L130,85 L130,91 L125,94 L120,91 Z"
+        android:strokeColor="#E5E7EB"
+        android:strokeWidth="0.5"
+        android:fillColor="#00000000" />
+
+    <!-- Large X shape - Left part (Dark Blue) -->
+    <path
+        android:pathData="M50,60 L70,60 L95,100 L70,140 L50,140 L75,100 Z"
+        android:fillColor="#1E3A8A" />
+
+    <!-- Circuit pattern on left X -->
+    <path
+        android:pathData="M58,80 L65,80 M58,85 L62,85 M62,85 L62,90 M62,90 L68,90 M58,95 L65,95 M58,100 L62,100 M62,100 L62,105 M62,105 L68,105 M58,110 L65,110"
+        android:strokeColor="#0EA5E9"
+        android:strokeWidth="1.5"
+        android:fillColor="#00000000" />
+
+    <!-- Circle connectors on circuit -->
+    <path
+        android:pathData="M58,80 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0 M68,90 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0 M68,105 m-1.5,0 a1.5,1.5 0 1,0 3,0 a1.5,1.5 0 1,0 -3,0"
+        android:fillColor="#FFFFFF" />
+
+    <!-- Large X shape - Right part (Cyan/Blue) -->
+    <path
+        android:pathData="M130,60 L150,60 L125,100 L150,140 L130,140 L105,100 Z"
+        android:fillColor="#0EA5E9" />
+
+    <!-- Shopping cart icon in top right of X -->
+    <path
+        android:pathData="M130,72 L136,72 L138,80 L128,80 Z M129,82 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0 M135,82 m-2,0 a2,2 0 1,0 4,0 a2,2 0 1,0 -4,0"
+        android:fillColor="#FFFFFF" />
+</vector>

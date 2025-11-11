@@ -15,7 +15,31 @@ data class Product(
     val inStock: Boolean = true,
     val discount: Int = 0, // Percentage
     val additionalImages: List<String> = emptyList(),
-    val customerReviews: List<CustomerReview> = emptyList()
+    val customerReviews: List<CustomerReview> = emptyList(),
+    // NEW FLIPKART FEATURES
+    val seller: Seller? = null,
+    val specifications: List<ProductSpecification> = emptyList(),
+    val variants: List<ProductVariant> = emptyList(),
+    val questions: List<ProductQuestion> = emptyList(),
+    val returnPolicy: ReturnPolicy? = null,
+    val deliveryOptions: List<DeliveryOption> = emptyList(),
+    val emiAvailable: Boolean = false,
+    val emiOptions: List<EMIOption> = emptyList(),
+    val bankOffers: List<BankOffer> = emptyList(),
+    val similarProducts: List<String> = emptyList(), // product IDs
+    val frequentlyBoughtTogether: List<String> = emptyList(), // product IDs
+    val brand: String = "",
+    val warranty: String = "",
+    val manufactureDate: String = "",
+    val countryOfOrigin: String = "India",
+    val hsnCode: String = "", // corrected property name
+    val tags: List<String> = emptyList(),
+    val isBestseller: Boolean = false,
+    val isNewArrival: Boolean = false,
+    val isPlusExclusive: Boolean = false,
+    val stockQuantity: Int = 100,
+    val minOrderQuantity: Int = 1,
+    val maxOrderQuantity: Int = 10
 ) {
     val discountedPrice: Double
         get() = if (discount > 0) {
@@ -23,6 +47,9 @@ data class Product(
         } else {
             price
         }
+
+    val savedAmount: Double
+        get() = price - discountedPrice
 }
 
 @Immutable

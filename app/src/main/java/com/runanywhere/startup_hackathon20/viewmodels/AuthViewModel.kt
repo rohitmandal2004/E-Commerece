@@ -1,16 +1,21 @@
 package com.runanywhere.startup_hackathon20.viewmodels
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.runanywhere.startup_hackathon20.models.Address
 import com.runanywhere.startup_hackathon20.models.Order
 import com.runanywhere.startup_hackathon20.models.OrderItem
 import com.runanywhere.startup_hackathon20.models.OrderStatus
 import com.runanywhere.startup_hackathon20.models.User
 import com.runanywhere.startup_hackathon20.data.ProductRepository
+import com.runanywhere.startup_hackathon20.data.UserDao
+import com.runanywhere.startup_hackathon20.data.UserEntity
+import com.runanywhere.startup_hackathon20.data.Converters
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import java.util.UUID
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(private val userDao: UserDao? = null) : ViewModel() {
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
@@ -27,11 +32,16 @@ class AuthViewModel : ViewModel() {
     private val _selectedLanguage = MutableStateFlow("English")
     val selectedLanguage: StateFlow<String> = _selectedLanguage.asStateFlow()
 
-    // Mock user database
+    private val _loginError = MutableStateFlow<String?>(null)
+    val loginError: StateFlow<String?> = _loginError.asStateFlow()
+
+    private val converters = Converters()
+
+    // Mock user database (fallback when Room is not available)
     private val users = mutableMapOf<String, Pair<String, User>>() // email to (password, user)
 
     init {
-        // Add some demo users with sample address
+        // Add demo user for testing
         val demoUser = User(
             id = "1",
             name = "Demo User",
@@ -54,38 +64,156 @@ class AuthViewModel : ViewModel() {
         )
         users["demo@techxon.com"] = "demo123" to demoUser
 
+        // Insert demo user into database
+        viewModelScope.launch {
+            userDao?.let { dao ->
+                try {
+                    // Check if demo user exists
+                    if (!dao.userExists("demo@techxon.com")) {
+                        val demoEntity = UserEntity(
+                            email = "demo@techxon.com",
+                            id = "1",
+                            name = "Demo User",
+                            phone = "+1234567890",
+                            password = "demo123",
+                            addressesJson = converters.fromAddressList(demoUser.addresses)
+                        )
+                        dao.insertUser(demoEntity)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
         // Generate some sample orders for demo user
         generateSampleOrders()
     }
 
-    fun login(email: String, password: String): Boolean {
-        val userEntry = users[email]
-        return if (userEntry != null && userEntry.first == password) {
-            _currentUser.value = userEntry.second
-            _isLoggedIn.value = true
-            _selectedAddress.value = userEntry.second.addresses.find { it.isDefault }
-            loadUserOrders()
-            true
-        } else {
-            false
+    fun login(email: String, password: String) {
+        viewModelScope.launch {
+            try {
+                _loginError.value = null
+
+                // Try database first
+                userDao?.let { dao ->
+                    val userEntity = dao.getUserByEmail(email)
+                    if (userEntity == null) {
+                        _loginError.value = "User not registered. Please sign up first."
+                        return@launch
+                    }
+
+                    if (userEntity.password != password) {
+                        _loginError.value = "Invalid password"
+                        return@launch
+                    }
+
+                    // Convert entity to User model
+                    val addresses = try {
+                        converters.toAddressList(userEntity.addressesJson).toMutableList()
+                    } catch (e: Exception) {
+                        mutableListOf()
+                    }
+
+                    val user = User(
+                        id = userEntity.id,
+                        name = userEntity.name,
+                        email = userEntity.email,
+                        phone = userEntity.phone,
+                        addresses = addresses
+                    )
+
+                    _currentUser.value = user
+                    _isLoggedIn.value = true
+                    _selectedAddress.value = user.addresses.find { it.isDefault }
+                    loadUserOrders()
+                    return@launch
+                }
+
+                // Fallback to in-memory storage
+                val userEntry = users[email]
+                if (userEntry == null) {
+                    _loginError.value = "User not registered. Please sign up first."
+                    return@launch
+                }
+
+                if (userEntry.first != password) {
+                    _loginError.value = "Invalid password"
+                    return@launch
+                }
+
+                _currentUser.value = userEntry.second
+                _isLoggedIn.value = true
+                _selectedAddress.value = userEntry.second.addresses.find { it.isDefault }
+                loadUserOrders()
+                return@launch
+            } catch (e: Exception) {
+                _loginError.value = "Login failed: ${e.message}"
+            }
         }
     }
 
-    fun signup(name: String, email: String, phone: String, password: String): Boolean {
-        return if (!users.containsKey(email)) {
-            val newUser = User(
-                id = UUID.randomUUID().toString(),
-                name = name,
-                email = email,
-                phone = phone
-            )
-            users[email] = password to newUser
-            _currentUser.value = newUser
-            _isLoggedIn.value = true
-            _orders.value = emptyList()
-            true
-        } else {
-            false
+    fun signup(name: String, email: String, phone: String, password: String) {
+        viewModelScope.launch {
+            try {
+                _loginError.value = null
+
+                // Validate inputs
+                if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                    _loginError.value = "Please fill all required fields"
+                    return@launch
+                }
+
+                // Try database first
+                userDao?.let { dao ->
+                    if (dao.userExists(email)) {
+                        _loginError.value = "Email already registered. Please login."
+                        return@launch
+                    }
+
+                    val newUser = User(
+                        id = UUID.randomUUID().toString(),
+                        name = name,
+                        email = email,
+                        phone = phone
+                    )
+
+                    val userEntity = UserEntity(
+                        email = email,
+                        id = newUser.id,
+                        name = name,
+                        phone = phone,
+                        password = password,
+                        addressesJson = converters.fromAddressList(emptyList())
+                    )
+
+                    dao.insertUser(userEntity)
+                    _currentUser.value = newUser
+                    _isLoggedIn.value = true
+                    _orders.value = emptyList()
+                    return@launch
+                }
+
+                // Fallback to in-memory storage
+                if (users.containsKey(email)) {
+                    _loginError.value = "Email already registered. Please login."
+                    return@launch
+                }
+
+                val newUser = User(
+                    id = UUID.randomUUID().toString(),
+                    name = name,
+                    email = email,
+                    phone = phone
+                )
+                users[email] = password to newUser
+                _currentUser.value = newUser
+                _isLoggedIn.value = true
+                _orders.value = emptyList()
+
+            } catch (e: Exception) {
+                _loginError.value = "Signup failed: ${e.message}"
+            }
         }
     }
 
@@ -94,6 +222,7 @@ class AuthViewModel : ViewModel() {
         _isLoggedIn.value = false
         _orders.value = emptyList()
         _selectedAddress.value = null
+        _loginError.value = null
     }
 
     private fun loadUserOrders() {
@@ -108,45 +237,79 @@ class AuthViewModel : ViewModel() {
 
     // Address Management Functions
     fun addAddress(address: Address) {
-        _currentUser.value?.let { user ->
-            // If this is the first address or marked as default, make it default
-            val newAddress = if (user.addresses.isEmpty() || address.isDefault) {
-                // Unset all other defaults
-                user.addresses.forEach { addr ->
-                    val index = user.addresses.indexOf(addr)
-                    if (addr.isDefault && index >= 0) {
-                        user.addresses[index] = addr.copy(isDefault = false)
+        viewModelScope.launch {
+            _currentUser.value?.let { user ->
+                // If this is the first address or marked as default, make it default
+                val newAddress = if (user.addresses.isEmpty() || address.isDefault) {
+                    // Unset all other defaults
+                    user.addresses.forEach { addr ->
+                        val index = user.addresses.indexOf(addr)
+                        if (addr.isDefault && index >= 0) {
+                            user.addresses[index] = addr.copy(isDefault = false)
+                        }
+                    }
+                    address.copy(isDefault = true)
+                } else {
+                    address
+                }
+
+                user.addresses.add(newAddress)
+                _currentUser.value = user.copy()
+
+                // If this is the default address, update selected address
+                if (newAddress.isDefault) {
+                    _selectedAddress.value = newAddress
+                }
+
+                // Update database
+                userDao?.let { dao ->
+                    try {
+                        val userEntity = dao.getUserByEmail(user.email)
+                        userEntity?.let {
+                            val updatedEntity = it.copy(
+                                addressesJson = converters.fromAddressList(user.addresses)
+                            )
+                            dao.updateUser(updatedEntity)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
-                address.copy(isDefault = true)
-            } else {
-                address
-            }
-
-            user.addresses.add(newAddress)
-            _currentUser.value = user.copy()
-
-            // If this is the default address, update selected address
-            if (newAddress.isDefault) {
-                _selectedAddress.value = newAddress
             }
         }
     }
 
     fun deleteAddress(addressId: String) {
-        _currentUser.value?.let { user ->
-            val addressToRemove = user.addresses.find { it.id == addressId }
-            user.addresses.removeIf { it.id == addressId }
+        viewModelScope.launch {
+            _currentUser.value?.let { user ->
+                val addressToRemove = user.addresses.find { it.id == addressId }
+                user.addresses.removeIf { it.id == addressId }
 
-            // If deleted address was default and there are other addresses, make first one default
-            if (addressToRemove?.isDefault == true && user.addresses.isNotEmpty()) {
-                user.addresses[0] = user.addresses[0].copy(isDefault = true)
-                _selectedAddress.value = user.addresses[0]
-            } else if (user.addresses.isEmpty()) {
-                _selectedAddress.value = null
+                // If deleted address was default and there are other addresses, make first one default
+                if (addressToRemove?.isDefault == true && user.addresses.isNotEmpty()) {
+                    user.addresses[0] = user.addresses[0].copy(isDefault = true)
+                    _selectedAddress.value = user.addresses[0]
+                } else if (user.addresses.isEmpty()) {
+                    _selectedAddress.value = null
+                }
+
+                _currentUser.value = user.copy()
+
+                // Update database
+                userDao?.let { dao ->
+                    try {
+                        val userEntity = dao.getUserByEmail(user.email)
+                        userEntity?.let {
+                            val updatedEntity = it.copy(
+                                addressesJson = converters.fromAddressList(user.addresses)
+                            )
+                            dao.updateUser(updatedEntity)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
             }
-
-            _currentUser.value = user.copy()
         }
     }
 
